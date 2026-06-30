@@ -1,26 +1,164 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg-primary: #F7F3EB;
+  --bg-card: #FDFCF9;
+  --text-primary: #1E1E1E;
+  --text-secondary: #6B6460;
+  --text-muted: #9B9490;
+  --border: #E5DDD2;
+  --accent: #A47A55;
+  --accent-hover: #8B6644;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-background: var(--bg-primary);
+  --color-foreground: var(--text-primary);
+  --font-sans: var(--font-geist);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: #A47A5533;
+}
+
+/* Primary button: dark bg, light text → accent on hover, scale on click */
+.btn-primary {
+  background: var(--text-primary);
+  color: var(--bg-primary);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.btn-primary:hover {
+  background: var(--accent);
+  transform: translateY(-1px);
+}
+.btn-primary:active {
+  background: var(--accent-hover);
+  transform: translateY(0);
+}
+
+/* Outline button: transparent bg, accent border → filled on hover */
+.btn-outline {
+  background: transparent;
+  color: var(--accent);
+  border: 1.5px solid var(--accent);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.btn-outline:hover {
+  background: var(--accent);
+  color: var(--bg-primary);
+  transform: translateY(-1px);
+}
+.btn-outline:active {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+  transform: translateY(0);
+}
+
+/* Text link: muted → primary on hover */
+.link-subtle {
+  color: var(--text-secondary);
+  transition: color 0.2s ease;
+}
+.link-subtle:hover {
+  color: var(--text-primary);
+}
+
+/* Muted link: lighter → accent on hover */
+.link-muted {
+  color: var(--text-muted);
+  transition: color 0.2s ease;
+}
+.link-muted:hover {
+  color: var(--accent);
+}
+
+/* Accent link */
+.link-accent {
+  color: var(--accent);
+  transition: color 0.2s ease;
+}
+.link-accent:hover {
+  color: var(--accent-hover);
+}
+
+/* Chapter row hover */
+.row-hover {
+  transition: background 0.2s ease;
+}
+.row-hover:hover {
+  background: var(--bg-card);
+}
+
+/* Card hover lift */
+.card-hover {
+  transition: all 0.2s ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(164, 122, 85, 0.08);
+}
+
+/* Auth input: beige bg, border → accent on focus */
+.auth-input {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  transition: border-color 0.2s ease;
+}
+.auth-input:focus {
+  border-color: var(--accent);
+}
+
+/* Testimonial scroll slideshow */
+.testimonial-scroll {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 24px;
+  overflow-x: scroll;
+  scrollbar-width: none;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  mask-image: linear-gradient(to right, transparent, black 3%, black 97%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 3%, black 97%, transparent);
+}
+
+.testimonial-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.testimonial-scroll:active {
+  cursor: grabbing;
+}
+
+.testimonial-slide {
+  flex-shrink: 0;
+  width: 320px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.testimonial-slide:hover {
+  transform: scale(1.03);
+  box-shadow: 0 4px 20px rgba(164, 122, 85, 0.12);
+}
+
+.testimonial-slide img {
+  width: 100%;
+  height: auto;
+  display: block;
+  pointer-events: none;
 }
