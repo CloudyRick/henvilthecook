@@ -1,13 +1,21 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+function redirectWithCookies(url: string, cookieResponse: NextResponse) {
+  const redirect = NextResponse.redirect(url);
+  cookieResponse.cookies.getAll().forEach(({ name, value }) => {
+    redirect.cookies.set(name, value);
+  });
+  return redirect;
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
   const next = searchParams.get("next") ?? "/";
 
   if (code) {
-    const response = NextResponse.redirect(`${origin}/`);
+    const cookieResponse = NextResponse.next();
 
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -19,7 +27,7 @@ export async function GET(request: NextRequest) {
           },
           setAll(cookiesToSet) {
             cookiesToSet.forEach(({ name, value, options }) =>
-              response.cookies.set(name, value, options)
+              cookieResponse.cookies.set(name, value, options)
             );
           },
         },
@@ -37,8 +45,7 @@ export async function GET(request: NextRequest) {
             .eq("id", user.id)
             .single();
           if (profile?.has_paid) {
-            response.headers.set("location", `${origin}/`);
-            return response;
+            return redirectWithCookies(`${origin}/?loggedin=1`, cookieResponse);
           }
           const stripe = new (await import("stripe")).default(process.env.STRIPE_SECRET_KEY!);
           const session = await stripe.checkout.sessions.create({
@@ -53,15 +60,12 @@ export async function GET(request: NextRequest) {
           });
           if (session.url) {
             const dest = `${origin}/?loggedin=1&next=${encodeURIComponent(session.url)}`;
-            response.headers.set("location", dest);
-            return response;
+            return redirectWithCookies(dest, cookieResponse);
           }
         }
-        response.headers.set("location", `${origin}/`);
-        return response;
+        return redirectWithCookies(`${origin}/?loggedin=1`, cookieResponse);
       }
-      response.headers.set("location", `${origin}/?loggedin=1`);
-      return response;
+      return redirectWithCookies(`${origin}/?loggedin=1`, cookieResponse);
     }
   }
 
