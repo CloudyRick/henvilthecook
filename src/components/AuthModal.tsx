@@ -30,6 +30,7 @@ export default function AuthModal({
       provider: "google",
       options: {
         redirectTo: callbackUrl,
+        queryParams: { prompt: "select_account" },
       },
     });
   }
