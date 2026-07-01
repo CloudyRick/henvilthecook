@@ -23,13 +23,29 @@ export async function POST(request: Request) {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
-    const userId = session.metadata?.user_id;
 
+    // Only grant access for paid sessions (async payment methods may be unpaid initially)
+    if (session.payment_status !== "paid") {
+      return NextResponse.json({ received: true });
+    }
+
+    const userId = session.metadata?.user_id;
     if (!userId) {
       return NextResponse.json({ error: "No user_id" }, { status: 400 });
     }
 
     const supabase = await createServiceClient();
+
+    // Idempotency: skip if this session was already processed
+    const { data: existing } = await supabase
+      .from("purchases")
+      .select("id")
+      .eq("stripe_session_id", session.id)
+      .single();
+
+    if (existing) {
+      return NextResponse.json({ received: true });
+    }
 
     await supabase
       .from("profiles")
