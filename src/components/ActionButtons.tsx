@@ -1,20 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
 import AuthModal from "./AuthModal";
 
 export function CheckoutButton({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
   const [loading, setLoading] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(isLoggedIn);
+
+  useEffect(() => {
+    const supabase = createClient();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setLoggedIn(!!session?.user);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   async function handleCheckout() {
-    if (!isLoggedIn) {
+    if (!loggedIn) {
       setAuthOpen(true);
       return;
     }
 
     setLoading(true);
-    const res = await fetch("/api/checkout", { method: "POST" });
+    const supabase = createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    const res = await fetch("/api/checkout", {
+      method: "POST",
+      headers: session?.access_token
+        ? { Authorization: `Bearer ${session.access_token}` }
+        : {},
+    });
     const data = await res.json();
 
     if (data.url) {
