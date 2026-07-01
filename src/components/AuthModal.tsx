@@ -2,7 +2,6 @@
 
 import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
-import Toast from "./Toast";
 
 export default function AuthModal({
   open,
@@ -18,7 +17,6 @@ export default function AuthModal({
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const [showToast, setShowToast] = useState(false);
 
   const supabase = createClient();
 
@@ -62,7 +60,6 @@ export default function AuthModal({
         setMessage(error.message);
       } else {
         onClose();
-        setShowToast(true);
         if (redirectToCheckout) {
           const res = await fetch("/api/checkout", { method: "POST" });
           const data = await res.json();
@@ -82,7 +79,6 @@ export default function AuthModal({
 
   return (
     <>
-      {showToast && <Toast message="Welcome! You're now signed in." />}
       {!open ? null : (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(30,30,30,0.4)", backdropFilter: "blur(4px)" }}>
       <div
