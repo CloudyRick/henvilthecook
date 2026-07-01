@@ -66,10 +66,10 @@ export default function AuthModal({
           if (data.url) {
             window.location.href = data.url;
           } else {
-            window.location.reload();
+            window.location.href = "/";
           }
         } else {
-          window.location.reload();
+          window.location.href = "/";
         }
       }
     }
