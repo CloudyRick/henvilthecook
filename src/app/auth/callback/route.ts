@@ -1,11 +1,16 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-function redirectWithCookies(url: string, cookieResponse: NextResponse) {
+function redirectWithCookies(url: string, cookieResponse: NextResponse, extra?: Record<string, string>) {
   const redirect = NextResponse.redirect(url);
   cookieResponse.cookies.getAll().forEach(({ name, value }) => {
     redirect.cookies.set(name, value);
   });
+  if (extra) {
+    Object.entries(extra).forEach(([name, value]) => {
+      redirect.cookies.set(name, value, { maxAge: 60, path: "/" });
+    });
+  }
   return redirect;
 }
 
@@ -45,27 +50,13 @@ export async function GET(request: NextRequest) {
             .eq("id", user.id)
             .single();
           if (profile?.has_paid) {
-            return redirectWithCookies(`${origin}/?loggedin=1`, cookieResponse);
+            return redirectWithCookies(`${origin}/`, cookieResponse);
           }
-          const stripe = new (await import("stripe")).default(process.env.STRIPE_SECRET_KEY!);
-          const session = await stripe.checkout.sessions.create({
-            payment_method_types: ["card"],
-            mode: "payment",
-            customer_email: user.email,
-            client_reference_id: user.id ?? undefined,
-            line_items: [{ price: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID!, quantity: 1 }],
-            metadata: { user_id: user.id },
-            success_url: `${origin}/?payment=success`,
-            cancel_url: `${origin}/`,
-          });
-          if (session.url) {
-            const dest = `${origin}/?loggedin=1&next=${encodeURIComponent(session.url)}`;
-            return redirectWithCookies(dest, cookieResponse);
-          }
+          // Set a short-lived cookie so LoginRedirect knows to trigger checkout
+          return redirectWithCookies(`${origin}/`, cookieResponse, { pending_checkout: "1" });
         }
-        return redirectWithCookies(`${origin}/?loggedin=1`, cookieResponse);
       }
-      return redirectWithCookies(`${origin}/?loggedin=1`, cookieResponse);
+      return redirectWithCookies(`${origin}/`, cookieResponse);
     }
   }
 

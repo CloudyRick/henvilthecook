@@ -1,26 +1,39 @@
 "use client";
 
 import { useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 export default function LoginRedirect() {
-  const params = useSearchParams();
   const router = useRouter();
-  const loggedin = params.get("loggedin");
-  const next = params.get("next");
 
   useEffect(() => {
-    if (!loggedin) return;
+    const hasPendingCheckout = document.cookie.includes("pending_checkout=1");
+    if (!hasPendingCheckout) return;
 
-    router.refresh();
+    // Clear the cookie immediately so it doesn't re-trigger
+    document.cookie = "pending_checkout=; max-age=0; path=/";
 
-    if (next) {
-      const timer = setTimeout(() => {
-        window.location.href = next;
-      }, 500);
-      return () => clearTimeout(timer);
+    async function goToCheckout() {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      const data = await res.json();
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        router.refresh();
+      }
     }
-  }, [loggedin, next, router]);
+
+    goToCheckout();
+  }, [router]);
 
   return null;
 }
