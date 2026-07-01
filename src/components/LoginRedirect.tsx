@@ -1,17 +1,18 @@
 "use client";
 
 import { useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 export default function LoginRedirect() {
-  const params = useSearchParams();
   const router = useRouter();
-  const checkout = params.get("checkout");
 
   useEffect(() => {
-    console.log("[LoginRedirect] checkout param:", checkout);
-    if (!checkout) return;
+    const pending = localStorage.getItem("pending_checkout");
+    console.log("[LoginRedirect] pending_checkout:", pending);
+    if (!pending) return;
+
+    localStorage.removeItem("pending_checkout");
 
     async function goToCheckout() {
       const supabase = createClient();
@@ -34,7 +35,7 @@ export default function LoginRedirect() {
     }
 
     goToCheckout();
-  }, [checkout, router]);
+  }, [router]);
 
   return null;
 }
