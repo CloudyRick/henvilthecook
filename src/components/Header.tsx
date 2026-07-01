@@ -1,17 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
 import AuthModal from "./AuthModal";
 import { SignOutButton } from "./ActionButtons";
 
 export default function Header({
-  userEmail,
+  userEmail: initialEmail,
   isAdmin = false,
 }: {
   userEmail: string | null;
   isAdmin?: boolean;
 }) {
   const [authOpen, setAuthOpen] = useState(false);
+  const [userEmail, setUserEmail] = useState(initialEmail);
+
+  useEffect(() => {
+    const supabase = createClient();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUserEmail(session?.user?.email ?? null);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   return (
     <header
