@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
           if (profile?.has_paid) {
             return redirectWithCookies(`${origin}/`, cookieResponse);
           }
-          return redirectWithCookies(`${origin}/?checkout=1`, cookieResponse);
+          return redirectWithCookies(`${origin}/`, cookieResponse);
         }
       }
       return redirectWithCookies(`${origin}/`, cookieResponse);

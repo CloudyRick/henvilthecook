@@ -21,13 +21,13 @@ export default function AuthModal({
   const supabase = createClient();
 
   async function handleGoogleSignIn() {
-    const callbackUrl = redirectToCheckout
-      ? `${window.location.origin}/auth/callback?next=checkout`
-      : `${window.location.origin}/auth/callback`;
+    if (redirectToCheckout) {
+      localStorage.setItem("pending_checkout", "1");
+    }
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: callbackUrl,
+        redirectTo: `${window.location.origin}/auth/callback`,
         queryParams: { prompt: "select_account" },
       },
     });
