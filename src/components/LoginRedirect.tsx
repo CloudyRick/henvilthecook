@@ -12,13 +12,12 @@ export default function LoginRedirect() {
   useEffect(() => {
     if (!loggedin) return;
 
-    router.refresh();
-
     if (next) {
-      const timer = setTimeout(() => {
-        window.location.href = next;
-      }, 500);
-      return () => clearTimeout(timer);
+      // Go straight to Stripe — no refresh needed
+      window.location.href = next;
+    } else {
+      // Plain login — just refresh server components
+      router.refresh();
     }
   }, [loggedin, next, router]);
 
