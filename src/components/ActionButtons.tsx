@@ -14,12 +14,10 @@ export function CheckoutButton({ isLoggedIn = false }: { isLoggedIn?: boolean })
 
     // Check session immediately on mount
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log("[CheckoutButton] mount session:", !!session);
       setLoggedIn(!!session?.user);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log("[CheckoutButton] auth change:", !!session);
       setLoggedIn(!!session?.user);
     });
     return () => subscription.unsubscribe();
@@ -34,7 +32,6 @@ export function CheckoutButton({ isLoggedIn = false }: { isLoggedIn?: boolean })
     setLoading(true);
     const supabase = createClient();
     const { data: { session } } = await supabase.auth.getSession();
-    console.log("[checkout] loggedIn:", loggedIn, "session:", !!session, "token:", !!session?.access_token);
     const res = await fetch("/api/checkout", {
       method: "POST",
       headers: session?.access_token
@@ -42,7 +39,6 @@ export function CheckoutButton({ isLoggedIn = false }: { isLoggedIn?: boolean })
         : {},
     });
     const data = await res.json();
-    console.log("[checkout] response:", data);
 
     if (data.url) {
       window.location.href = data.url;
