@@ -1,8 +1,10 @@
+import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import Header from "@/components/Header";
 import ContentViewer from "@/components/ContentViewer";
 import { CheckoutButton, DownloadButton } from "@/components/ActionButtons";
 import TestimonialSlideshow from "@/components/TestimonialSlideshow";
+import LoginRedirect from "@/components/LoginRedirect";
 import type { ContentSection, SiteContent, Testimonial } from "@/types/database";
 
 export const dynamic = "force-dynamic";
@@ -47,6 +49,9 @@ export default async function Home() {
 
   return (
     <div className="min-h-screen" style={{ background: "var(--bg-primary)" }}>
+      <Suspense fallback={null}>
+        <LoginRedirect />
+      </Suspense>
       <Header userEmail={user?.email ?? null} isAdmin={isAdmin} />
 
       <main className="mx-auto max-w-[1280px] px-8">
