@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
         response.headers.set("location", `${origin}/`);
         return response;
       }
-      response.headers.set("location", `${origin}${next}`);
+      response.headers.set("location", `${origin}/?loggedin=1`);
       return response;
     }
   }
