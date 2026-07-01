@@ -61,7 +61,13 @@ export default function AuthModal({
       } else {
         onClose();
         if (redirectToCheckout) {
-          const res = await fetch("/api/checkout", { method: "POST" });
+          const { data: { session } } = await supabase.auth.getSession();
+          const res = await fetch("/api/checkout", {
+            method: "POST",
+            headers: session?.access_token
+              ? { Authorization: `Bearer ${session.access_token}` }
+              : {},
+          });
           const data = await res.json();
           if (data.url) {
             window.location.href = data.url;
