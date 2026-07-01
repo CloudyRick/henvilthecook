@@ -11,7 +11,15 @@ export function CheckoutButton({ isLoggedIn = false }: { isLoggedIn?: boolean })
 
   useEffect(() => {
     const supabase = createClient();
+
+    // Check session immediately on mount
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log("[CheckoutButton] mount session:", !!session);
+      setLoggedIn(!!session?.user);
+    });
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log("[CheckoutButton] auth change:", !!session);
       setLoggedIn(!!session?.user);
     });
     return () => subscription.unsubscribe();
