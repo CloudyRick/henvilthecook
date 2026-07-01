@@ -28,13 +28,14 @@ export function CheckoutButton({ isLoggedIn = false }: { isLoggedIn?: boolean })
   return (
     <>
       <button
+        id="unlock-btn"
         onClick={handleCheckout}
         disabled={loading}
         className="btn-primary rounded-full px-8 py-3.5 text-sm font-semibold tracking-wide disabled:opacity-50"
       >
         {loading ? "Redirecting..." : "Unlock Full Content"}
       </button>
-      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
+      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} redirectToCheckout />
     </>
   );
 }

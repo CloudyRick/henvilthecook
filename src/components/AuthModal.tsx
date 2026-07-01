@@ -6,9 +6,11 @@ import { useState } from "react";
 export default function AuthModal({
   open,
   onClose,
+  redirectToCheckout = false,
 }: {
   open: boolean;
   onClose: () => void;
+  redirectToCheckout?: boolean;
 }) {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
@@ -19,10 +21,13 @@ export default function AuthModal({
   const supabase = createClient();
 
   async function handleGoogleSignIn() {
+    const callbackUrl = redirectToCheckout
+      ? `${window.location.origin}/auth/callback?next=checkout`
+      : `${window.location.origin}/auth/callback`;
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: callbackUrl,
       },
     });
   }
@@ -54,7 +59,17 @@ export default function AuthModal({
         setMessage(error.message);
       } else {
         onClose();
-        window.location.reload();
+        if (redirectToCheckout) {
+          const res = await fetch("/api/checkout", { method: "POST" });
+          const data = await res.json();
+          if (data.url) {
+            window.location.href = data.url;
+          } else {
+            window.location.reload();
+          }
+        } else {
+          window.location.reload();
+        }
       }
     }
 

@@ -149,59 +149,6 @@ export default async function Home() {
 
       <TestimonialSlideshow testimonials={(testimonials as Testimonial[] | null) || []} />
 
-      {/* Footer */}
-      <footer style={{ borderTop: "1px solid var(--border)" }}>
-        <div className="mx-auto grid max-w-[1280px] gap-12 px-8 py-16 md:grid-cols-3">
-          <div>
-            <span
-              className="text-sm font-semibold uppercase tracking-[0.2em]"
-              style={{ color: "var(--text-primary)" }}
-            >
-              Henvil the Cook
-            </span>
-            <p className="mt-4 max-w-xs text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-              A personal guide documenting the journey from working as a chef in Australia to obtaining permanent residency.
-            </p>
-          </div>
-          <div>
-            <p
-              className="mb-4 text-xs font-semibold uppercase tracking-[0.2em]"
-              style={{ color: "var(--text-muted)" }}
-            >
-              Navigate
-            </p>
-            <ul className="space-y-2.5">
-              {["Chapters", "Testimonials"].map((link) => (
-                <li key={link}>
-                  <a
-                    href={`#${link.toLowerCase()}`}
-                    className="link-subtle text-sm"
-                  >
-                    {link}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <p
-              className="mb-4 text-xs font-semibold uppercase tracking-[0.2em]"
-              style={{ color: "var(--text-muted)" }}
-            >
-              Legal
-            </p>
-            <ul className="space-y-2.5">
-              {["Privacy Policy", "Terms of Service"].map((link) => (
-                <li key={link}>
-                  <span className="text-sm" style={{ color: "var(--text-muted)" }}>
-                    {link}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
