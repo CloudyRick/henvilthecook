@@ -52,8 +52,7 @@ export async function GET(request: NextRequest) {
           if (profile?.has_paid) {
             return redirectWithCookies(`${origin}/`, cookieResponse);
           }
-          // Set a short-lived cookie so LoginRedirect knows to trigger checkout
-          return redirectWithCookies(`${origin}/`, cookieResponse, { pending_checkout: "1" });
+          return redirectWithCookies(`${origin}/?checkout=1`, cookieResponse);
         }
       }
       return redirectWithCookies(`${origin}/`, cookieResponse);
