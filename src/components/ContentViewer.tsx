@@ -166,7 +166,7 @@ export default function ContentViewer({
                   <img
                     src={section.image_url}
                     alt={section.title}
-                    className="mt-5 w-full rounded-xl object-cover"
+                    className="mt-5 max-h-64 max-w-full rounded-xl object-contain"
                   />
                 )}
                 {section.file_key && (
