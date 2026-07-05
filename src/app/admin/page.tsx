@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { updateSiteContent, updateSection, createSection, deleteSection, addTestimonial, deleteTestimonial } from "./actions";
+import { updateSiteContent, updateSection, createSection, deleteSection, addTestimonial, deleteTestimonial, removeDownloadFromSection, removeImageFromSection } from "./actions";
 import type { ContentSection, SiteContent, Purchase, Testimonial } from "@/types/database";
 
 export const dynamic = "force-dynamic";
@@ -156,6 +156,40 @@ export default async function AdminPage() {
                       <span className="text-sm text-gray-700">Free preview</span>
                     </label>
                   </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Downloadable File (optional — paid users only)
+                    </label>
+                    {section.file_name && (
+                      <p className="mt-1 text-sm text-gray-600">
+                        Current: <span className="font-medium">{section.file_name}</span>
+                      </p>
+                    )}
+                    <input
+                      name="file"
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:rounded-lg file:border-0 file:bg-amber-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-amber-700 hover:file:bg-amber-100"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Body Image (optional — visible to all)
+                    </label>
+                    {section.image_url && (
+                      <img
+                        src={section.image_url}
+                        alt="Section image"
+                        className="mt-1 h-24 w-auto rounded-lg object-cover"
+                      />
+                    )}
+                    <input
+                      name="image"
+                      type="file"
+                      accept="image/*"
+                      className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:rounded-lg file:border-0 file:bg-amber-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-amber-700 hover:file:bg-amber-100"
+                    />
+                  </div>
                   <div className="flex gap-2">
                     <button
                       type="submit"
@@ -165,15 +199,32 @@ export default async function AdminPage() {
                     </button>
                   </div>
                 </form>
-                <form action={deleteSection} className="mt-2">
-                  <input type="hidden" name="id" value={section.id} />
-                  <button
-                    type="submit"
-                    className="text-sm text-red-500 hover:text-red-700"
-                  >
-                    Delete section
-                  </button>
-                </form>
+                <div className="mt-2 flex gap-4">
+                  <form action={deleteSection}>
+                    <input type="hidden" name="id" value={section.id} />
+                    <button type="submit" className="text-sm text-red-500 hover:text-red-700">
+                      Delete section
+                    </button>
+                  </form>
+                  {section.file_name && (
+                    <form action={removeDownloadFromSection}>
+                      <input type="hidden" name="id" value={section.id} />
+                      <input type="hidden" name="file_key" value={section.file_key ?? ""} />
+                      <button type="submit" className="text-sm text-red-400 hover:text-red-600">
+                        Remove file
+                      </button>
+                    </form>
+                  )}
+                  {section.image_url && (
+                    <form action={removeImageFromSection}>
+                      <input type="hidden" name="id" value={section.id} />
+                      <input type="hidden" name="image_key" value={section.image_key ?? ""} />
+                      <button type="submit" className="text-sm text-red-400 hover:text-red-600">
+                        Remove image
+                      </button>
+                    </form>
+                  )}
+                </div>
               </div>
             ))}
           </div>

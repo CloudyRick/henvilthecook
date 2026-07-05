@@ -1,0 +1,3 @@
+ALTER TABLE content_sections
+  ADD COLUMN IF NOT EXISTS file_key TEXT,
+  ADD COLUMN IF NOT EXISTS file_name TEXT;

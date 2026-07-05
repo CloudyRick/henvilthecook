@@ -1,0 +1,3 @@
+ALTER TABLE content_sections
+  ADD COLUMN IF NOT EXISTS image_key TEXT,
+  ADD COLUMN IF NOT EXISTS image_url TEXT;

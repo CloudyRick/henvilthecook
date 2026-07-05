@@ -15,6 +15,10 @@ export interface ContentSection {
   body: string;
   sort_order: number;
   is_free_preview: boolean;
+  file_key: string | null;
+  file_name: string | null;
+  image_key: string | null;
+  image_url: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -39,6 +43,15 @@ export interface Purchase {
 export interface Testimonial {
   id: string;
   image_url: string;
+  sort_order: number;
+  created_at: string;
+}
+
+export interface Download {
+  id: string;
+  label: string;
+  file_key: string;
+  file_name: string;
   sort_order: number;
   created_at: string;
 }

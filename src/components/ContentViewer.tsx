@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 import type { ContentSection } from "@/types/database";
 
 export default function ContentViewer({
@@ -11,6 +12,25 @@ export default function ContentViewer({
   hasPaid: boolean;
 }) {
   const [openIds, setOpenIds] = useState<Set<string>>(new Set());
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+
+  async function handleDownload(sectionId: string) {
+    setDownloadingId(sectionId);
+    const supabase = createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    const res = await fetch(`/api/download-file?id=${sectionId}`, {
+      headers: session?.access_token
+        ? { Authorization: `Bearer ${session.access_token}` }
+        : {},
+    });
+    const data = await res.json();
+    if (data.url) {
+      window.open(data.url, "_blank");
+    } else {
+      alert(data.error || "Something went wrong");
+    }
+    setDownloadingId(null);
+  }
 
   function toggle(id: string) {
     setOpenIds(prev => {
@@ -142,6 +162,25 @@ export default function ContentViewer({
                 >
                   {section.body}
                 </div>
+                {section.image_url && (
+                  <img
+                    src={section.image_url}
+                    alt={section.title}
+                    className="mt-5 w-full rounded-xl object-cover"
+                  />
+                )}
+                {section.file_key && (
+                  <button
+                    onClick={() => handleDownload(section.id)}
+                    disabled={downloadingId === section.id}
+                    className="btn-outline mt-5 flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-medium disabled:opacity-50"
+                  >
+                    <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                    </svg>
+                    {downloadingId === section.id ? "Preparing…" : `Download ${section.file_name ?? "file"}`}
+                  </button>
+                )}
               </div>
             )}
           </div>
