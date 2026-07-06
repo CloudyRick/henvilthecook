@@ -75,3 +75,8 @@ export async function deletePublicImage(key: string): Promise<void> {
     Key: key,
   }));
 }
+
+export async function getPresignedPutUrl(bucket: string, key: string, contentType: string): Promise<string> {
+  const command = new PutObjectCommand({ Bucket: bucket, Key: key, ContentType: contentType });
+  return getSignedUrl(createS3Client(), command, { expiresIn: 300 });
+}

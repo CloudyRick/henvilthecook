@@ -2,23 +2,25 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { ContentSection } from "@/types/database";
+import type { ContentSection, SectionFile } from "@/types/database";
 
 export default function ContentViewer({
   sections,
+  filesBySection,
   hasPaid,
 }: {
   sections: ContentSection[];
+  filesBySection: Record<string, SectionFile[]>;
   hasPaid: boolean;
 }) {
   const [openIds, setOpenIds] = useState<Set<string>>(new Set());
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
-  async function handleDownload(sectionId: string) {
-    setDownloadingId(sectionId);
+  async function handleDownload(fileId: string) {
+    setDownloadingId(fileId);
     const supabase = createClient();
     const { data: { session } } = await supabase.auth.getSession();
-    const res = await fetch(`/api/download-file?id=${sectionId}`, {
+    const res = await fetch(`/api/download-file?id=${fileId}`, {
       headers: session?.access_token
         ? { Authorization: `Bearer ${session.access_token}` }
         : {},
@@ -47,6 +49,9 @@ export default function ContentViewer({
         const isLocked = !section.is_free_preview && !hasPaid;
         const isOpen = openIds.has(section.id);
         const chapterNum = String(index + 1).padStart(2, "0");
+        const sectionFiles = filesBySection[section.id] ?? [];
+        const images = sectionFiles.filter(f => f.type === "image");
+        const files = sectionFiles.filter(f => f.type === "file");
 
         return (
           <div
@@ -162,24 +167,36 @@ export default function ContentViewer({
                 >
                   {section.body}
                 </div>
-                {section.image_url && (
-                  <img
-                    src={section.image_url}
-                    alt={section.title}
-                    className="mt-5 max-h-64 max-w-full rounded-xl object-contain"
-                  />
+
+                {images.length > 0 && (
+                  <div className="mt-5 flex flex-wrap gap-3">
+                    {images.map(img => (
+                      <img
+                        key={img.id}
+                        src={img.url!}
+                        alt={img.name}
+                        className="max-h-64 max-w-full rounded-xl object-contain"
+                      />
+                    ))}
+                  </div>
                 )}
-                {section.file_key && (
-                  <button
-                    onClick={() => handleDownload(section.id)}
-                    disabled={downloadingId === section.id}
-                    className="btn-outline mt-5 flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-medium disabled:opacity-50"
-                  >
-                    <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                    </svg>
-                    {downloadingId === section.id ? "Preparing…" : `Download ${section.file_name ?? "file"}`}
-                  </button>
+
+                {files.length > 0 && (
+                  <div className="mt-5 flex flex-col gap-2">
+                    {files.map(f => (
+                      <button
+                        key={f.id}
+                        onClick={() => handleDownload(f.id)}
+                        disabled={downloadingId === f.id}
+                        className="btn-outline flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-medium disabled:opacity-50"
+                      >
+                        <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                        </svg>
+                        {downloadingId === f.id ? "Preparing…" : `Download ${f.name}`}
+                      </button>
+                    ))}
+                  </div>
                 )}
               </div>
             )}

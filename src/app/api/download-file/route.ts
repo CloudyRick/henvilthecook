@@ -44,16 +44,17 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Purchase required" }, { status: 403 });
   }
 
-  const { data: section } = await supabase
-    .from("content_sections")
-    .select("file_key, file_name")
+  const { data: sectionFile } = await supabase
+    .from("section_files")
+    .select("key, name")
     .eq("id", id)
+    .eq("type", "file")
     .single();
 
-  if (!section?.file_key || !section?.file_name) {
+  if (!sectionFile) {
     return NextResponse.json({ error: "File not found" }, { status: 404 });
   }
 
-  const url = await getFileSignedUrl(section.file_key, section.file_name);
+  const url = await getFileSignedUrl(sectionFile.key, sectionFile.name);
   return NextResponse.json({ url });
 }

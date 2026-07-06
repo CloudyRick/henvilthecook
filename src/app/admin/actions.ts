@@ -53,65 +53,17 @@ export async function updateSection(formData: FormData) {
   const sortOrder = parseInt(formData.get("sort_order") as string, 10);
   const isFreePreview = formData.get("is_free_preview") === "on";
 
-  const updates: Record<string, unknown> = {
-    title,
-    teaser,
-    body,
-    slug,
-    sort_order: sortOrder,
-    is_free_preview: isFreePreview,
-    updated_at: new Date().toISOString(),
-  };
-
-  const file = formData.get("file") as File | null;
-  if (file && file.size > 0) {
-    const ext = file.name.split(".").pop();
-    const fileKey = `sections/${crypto.randomUUID()}.${ext}`;
-    const buffer = Buffer.from(await file.arrayBuffer());
-    await uploadFile(fileKey, buffer, file.type);
-    updates.file_key = fileKey;
-    updates.file_name = file.name;
-  }
-
-  const image = formData.get("image") as File | null;
-  if (image && image.size > 0) {
-    const ext = image.name.split(".").pop();
-    const imageKey = `sections/${crypto.randomUUID()}.${ext}`;
-    const buffer = Buffer.from(await image.arrayBuffer());
-    const imageUrl = await uploadPublicImage(imageKey, buffer, image.type);
-    updates.image_key = imageKey;
-    updates.image_url = imageUrl;
-  }
-
-  await supabase.from("content_sections").update(updates).eq("id", id);
-
-  revalidatePath("/");
-  revalidatePath("/admin");
-}
-
-export async function removeDownloadFromSection(formData: FormData) {
-  const id = formData.get("id") as string;
-  const fileKey = formData.get("file_key") as string;
-
-  const s3 = new S3Client({
-    region: process.env.OCI_S3_REGION!,
-    endpoint: `https://${process.env.OCI_S3_NAMESPACE!}.compat.objectstorage.${process.env.OCI_S3_REGION!}.oraclecloud.com`,
-    credentials: {
-      accessKeyId: process.env.OCI_S3_ACCESS_KEY_ID!,
-      secretAccessKey: process.env.OCI_S3_SECRET_ACCESS_KEY!,
-    },
-    forcePathStyle: true,
-  });
-
-  await s3.send(new DeleteObjectCommand({
-    Bucket: process.env.OCI_S3_BUCKET_NAME!,
-    Key: fileKey,
-  }));
-
-  const supabase = await requireAdmin();
   await supabase
     .from("content_sections")
-    .update({ file_key: null, file_name: null, updated_at: new Date().toISOString() })
+    .update({
+      title,
+      teaser,
+      body,
+      slug,
+      sort_order: sortOrder,
+      is_free_preview: isFreePreview,
+      updated_at: new Date().toISOString(),
+    })
     .eq("id", id);
 
   revalidatePath("/");
@@ -146,6 +98,79 @@ export async function deleteSection(formData: FormData) {
   const id = formData.get("id") as string;
 
   await supabase.from("content_sections").delete().eq("id", id);
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+}
+
+export async function addSectionFile(formData: FormData) {
+  const sectionId = formData.get("section_id") as string;
+  const type = formData.get("type") as "image" | "file";
+  const file = formData.get("file") as File;
+
+  if (!file || file.size === 0) throw new Error("No file provided");
+
+  const ext = file.name.split(".").pop();
+  const key = `sections/${crypto.randomUUID()}.${ext}`;
+  const buffer = Buffer.from(await file.arrayBuffer());
+
+  let url: string | null = null;
+  if (type === "image") {
+    url = await uploadPublicImage(key, buffer, file.type);
+  } else {
+    await uploadFile(key, buffer, file.type);
+  }
+
+  const supabase = await requireAdmin();
+  const { data: existing } = await supabase
+    .from("section_files")
+    .select("sort_order")
+    .eq("section_id", sectionId)
+    .eq("type", type)
+    .order("sort_order", { ascending: false })
+    .limit(1)
+    .single();
+
+  const sortOrder = existing ? existing.sort_order + 1 : 0;
+
+  await supabase.from("section_files").insert({
+    section_id: sectionId,
+    type,
+    key,
+    name: file.name,
+    url,
+    sort_order: sortOrder,
+  });
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+}
+
+export async function deleteSectionFile(formData: FormData) {
+  const id = formData.get("id") as string;
+  const type = formData.get("type") as "image" | "file";
+  const key = formData.get("key") as string;
+
+  if (type === "image") {
+    await deletePublicImage(key);
+  } else {
+    const s3 = new S3Client({
+      region: process.env.OCI_S3_REGION!,
+      endpoint: `https://${process.env.OCI_S3_NAMESPACE!}.compat.objectstorage.${process.env.OCI_S3_REGION!}.oraclecloud.com`,
+      credentials: {
+        accessKeyId: process.env.OCI_S3_ACCESS_KEY_ID!,
+        secretAccessKey: process.env.OCI_S3_SECRET_ACCESS_KEY!,
+      },
+      forcePathStyle: true,
+    });
+    await s3.send(new DeleteObjectCommand({
+      Bucket: process.env.OCI_S3_BUCKET_NAME!,
+      Key: key,
+    }));
+  }
+
+  const supabase = await requireAdmin();
+  await supabase.from("section_files").delete().eq("id", id);
 
   revalidatePath("/");
   revalidatePath("/admin");
@@ -196,20 +221,3 @@ export async function deleteTestimonial(formData: FormData) {
   revalidatePath("/");
   revalidatePath("/admin");
 }
-
-export async function removeImageFromSection(formData: FormData) {
-  const id = formData.get("id") as string;
-  const imageKey = formData.get("image_key") as string;
-
-  await deletePublicImage(imageKey);
-
-  const supabase = await requireAdmin();
-  await supabase
-    .from("content_sections")
-    .update({ image_key: null, image_url: null, updated_at: new Date().toISOString() })
-    .eq("id", id);
-
-  revalidatePath("/");
-  revalidatePath("/admin");
-}
-

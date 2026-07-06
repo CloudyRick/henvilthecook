@@ -5,7 +5,7 @@ import ContentViewer from "@/components/ContentViewer";
 import { CheckoutButton, DownloadButton } from "@/components/ActionButtons";
 import TestimonialSlideshow from "@/components/TestimonialSlideshow";
 import LoginRedirect from "@/components/LoginRedirect";
-import type { ContentSection, SiteContent, Testimonial } from "@/types/database";
+import type { ContentSection, SiteContent, Testimonial, SectionFile } from "@/types/database";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +46,17 @@ export default async function Home() {
     .from("testimonials")
     .select("*")
     .order("sort_order", { ascending: true });
+
+  const { data: sectionFilesRows } = await supabase
+    .from("section_files")
+    .select("*")
+    .order("sort_order", { ascending: true });
+
+  const filesBySection: Record<string, SectionFile[]> = {};
+  (sectionFilesRows as SectionFile[] | null)?.forEach((f) => {
+    if (!filesBySection[f.section_id]) filesBySection[f.section_id] = [];
+    filesBySection[f.section_id].push(f);
+  });
 
   return (
     <div className="min-h-screen" style={{ background: "var(--bg-primary)" }}>
@@ -90,6 +101,7 @@ export default async function Home() {
           </p>
           <ContentViewer
             sections={(sections as ContentSection[]) || []}
+            filesBySection={filesBySection}
             hasPaid={hasPaid}
           />
         </section>
