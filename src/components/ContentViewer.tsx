@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { createClient } from "@/lib/supabase/client";
 import type { ContentSection, SectionFile } from "@/types/database";
 
@@ -162,10 +164,26 @@ export default function ContentViewer({
             {isOpen && !isLocked && (
               <div className="pb-6 pl-20 pr-4">
                 <div
-                  className="whitespace-pre-wrap text-sm leading-relaxed md:text-base"
+                  className="prose prose-sm max-w-none text-sm leading-relaxed md:text-base"
                   style={{ color: "var(--text-secondary)" }}
                 >
-                  {section.body}
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      a: ({ href, children }) => (
+                        <a
+                          href={href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ color: "var(--accent)", textDecoration: "underline" }}
+                        >
+                          {children}
+                        </a>
+                      ),
+                    }}
+                  >
+                    {section.body}
+                  </ReactMarkdown>
                 </div>
 
                 {images.length > 0 && (
