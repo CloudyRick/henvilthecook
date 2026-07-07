@@ -60,8 +60,10 @@ export default function AuthModal({
         setMessage(error.message);
       } else {
         onClose();
+        // Ensure the session cookie is flushed before navigating, otherwise the
+        // server-rendered page can race the cookie write and briefly show locked content.
+        const { data: { session } } = await supabase.auth.getSession();
         if (redirectToCheckout) {
-          const { data: { session } } = await supabase.auth.getSession();
           const res = await fetch("/api/checkout", {
             method: "POST",
             headers: session?.access_token
