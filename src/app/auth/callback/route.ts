@@ -40,6 +40,16 @@ export async function GET(request: NextRequest) {
     );
 
     const { error } = await supabase.auth.exchangeCodeForSession(code);
+    console.log("[DEBUG auth/callback]", {
+      exchangeError: error,
+      cookiesToForward: cookieResponse.cookies.getAll().map((c) => ({
+        name: c.name,
+        sameSite: c.sameSite,
+        maxAge: c.maxAge,
+        path: c.path,
+        secure: c.secure,
+      })),
+    });
     if (!error) {
       if (next === "checkout") {
         const { data: { user } } = await supabase.auth.getUser();
