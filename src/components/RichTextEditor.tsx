@@ -156,6 +156,13 @@ export default function RichTextEditor({
         >
           Link
         </ToolbarButton>
+        <div className="mx-1 h-5 w-px bg-gray-300" />
+        <ToolbarButton
+          label="Extra space between lines"
+          onClick={() => editor.chain().focus().setHardBreak().setHardBreak().run()}
+        >
+          ↵ Spacer
+        </ToolbarButton>
       </div>
       <EditorContent editor={editor} />
     </div>
