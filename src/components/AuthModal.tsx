@@ -3,6 +3,19 @@
 import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
 
+async function waitForServerSession(maxAttempts = 5, delayMs = 200) {
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    try {
+      const res = await fetch("/api/session-check", { cache: "no-store" });
+      const data = await res.json();
+      if (data.authenticated) return;
+    } catch {
+      // ignore and retry
+    }
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+  }
+}
+
 export default function AuthModal({
   open,
   onClose,
@@ -60,8 +73,6 @@ export default function AuthModal({
         setMessage(error.message);
       } else {
         onClose();
-        // Ensure the session cookie is flushed before navigating, otherwise the
-        // server-rendered page can race the cookie write and briefly show locked content.
         const { data: { session } } = await supabase.auth.getSession();
         if (redirectToCheckout) {
           const res = await fetch("/api/checkout", {
@@ -77,6 +88,11 @@ export default function AuthModal({
             window.location.href = "/";
           }
         } else {
+          // Wait for the server (middleware/cookies) to actually recognize the
+          // session before navigating — on prod the auth cookie write can lag
+          // behind this promise resolving, which otherwise renders the
+          // homepage as logged-out on the very first load after sign-in.
+          await waitForServerSession();
           window.location.href = "/";
         }
       }
