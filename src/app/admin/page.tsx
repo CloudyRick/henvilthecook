@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { updateSiteContent, updateSection, createSection, deleteSection, addTestimonial, deleteTestimonial, deleteSectionFile } from "./actions";
 import SectionFileUpload from "@/components/SectionFileUpload";
+import RichTextEditor from "@/components/RichTextEditor";
 import type { ContentSection, SiteContent, Purchase, Testimonial, SectionFile } from "@/types/database";
 
 export const dynamic = "force-dynamic";
@@ -137,14 +138,9 @@ export default async function AdminPage() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">
-                      Body (Markdown)
+                      Body
                     </label>
-                    <textarea
-                      name="body"
-                      rows={4}
-                      defaultValue={section.body}
-                      className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-amber-500 focus:outline-none"
-                    />
+                    <RichTextEditor name="body" defaultValue={section.body} />
                   </div>
                   <div className="flex items-center gap-4">
                     <div>
@@ -258,13 +254,9 @@ export default async function AdminPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Body (Markdown)
+                Body
               </label>
-              <textarea
-                name="body"
-                rows={4}
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-amber-500 focus:outline-none"
-              />
+              <RichTextEditor name="body" />
             </div>
             <div className="flex items-center gap-4">
               <div>
