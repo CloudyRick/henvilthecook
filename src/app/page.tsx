@@ -14,18 +14,28 @@ export default async function Home() {
 
   const {
     data: { user },
+    error: userError,
   } = await supabase.auth.getUser();
 
   let hasPaid = false;
   let isAdmin = false;
   if (user) {
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("has_paid, is_admin")
       .eq("id", user.id)
       .single();
     hasPaid = profile?.has_paid ?? false;
     isAdmin = profile?.is_admin ?? false;
+    console.log("[DEBUG page.tsx]", {
+      userId: user.id,
+      userEmail: user.email,
+      profile,
+      profileError,
+      hasPaid,
+    });
+  } else {
+    console.log("[DEBUG page.tsx] no user", { userError });
   }
 
   const { data: siteContentRows } = await supabase
