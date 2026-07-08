@@ -3,8 +3,8 @@ import { NextResponse, type NextRequest } from "next/server";
 
 function redirectWithCookies(url: string, cookieResponse: NextResponse, extra?: Record<string, string>) {
   const redirect = NextResponse.redirect(url);
-  cookieResponse.cookies.getAll().forEach(({ name, value }) => {
-    redirect.cookies.set(name, value);
+  cookieResponse.cookies.getAll().forEach((cookie) => {
+    redirect.cookies.set(cookie);
   });
   if (extra) {
     Object.entries(extra).forEach(([name, value]) => {
