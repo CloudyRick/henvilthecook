@@ -48,7 +48,7 @@ export async function updateSection(formData: FormData) {
   const id = formData.get("id") as string;
   const title = formData.get("title") as string;
   const teaser = formData.get("teaser") as string;
-  const body = formData.get("body") as string;
+  const body = (formData.get("body") as string).replace(/\r\n?/g, "\n");
   const slug = formData.get("slug") as string;
   const sortOrder = parseInt(formData.get("sort_order") as string, 10);
   const isFreePreview = formData.get("is_free_preview") === "on";
@@ -75,7 +75,7 @@ export async function createSection(formData: FormData) {
 
   const title = formData.get("title") as string;
   const teaser = formData.get("teaser") as string;
-  const body = formData.get("body") as string;
+  const body = (formData.get("body") as string).replace(/\r\n?/g, "\n");
   const slug = formData.get("slug") as string;
   const sortOrder = parseInt(formData.get("sort_order") as string, 10);
   const isFreePreview = formData.get("is_free_preview") === "on";

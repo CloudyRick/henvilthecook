@@ -51,7 +51,7 @@ export default function RichTextEditor({
     immediatelyRender: false,
     onUpdate: ({ editor }) => {
       const storage = editor.storage as unknown as Record<string, { getMarkdown(): string }>;
-      setMarkdown(storage.markdown.getMarkdown());
+      setMarkdown(storage.markdown.getMarkdown().replace(/\r\n?/g, "\n"));
     },
     editorProps: {
       attributes: {
@@ -159,7 +159,15 @@ export default function RichTextEditor({
         <div className="mx-1 h-5 w-px bg-gray-300" />
         <ToolbarButton
           label="Extra space between lines"
-          onClick={() => editor.chain().focus().setHardBreak().setHardBreak().run()}
+          onClick={() =>
+            editor
+              .chain()
+              .focus()
+              .setHardBreak()
+              .setHardBreak()
+              .insertContent("​")
+              .run()
+          }
         >
           ↵ Spacer
         </ToolbarButton>
