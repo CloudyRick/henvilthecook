@@ -1,10 +1,34 @@
 "use client";
 
-import { useEditor, EditorContent } from "@tiptap/react";
+import { useEditor, EditorContent, Extension } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
 import { Markdown } from "tiptap-markdown";
 import { useEffect, useState } from "react";
+
+// Markdown collapses consecutive blank lines, so a plain second Enter on an
+// empty paragraph produces no visible gap. Detect that case and insert the
+// same invisible spacer the toolbar button uses, so Enter-Enter "just works".
+const SpacerOnDoubleEnter = Extension.create({
+  name: "spacerOnDoubleEnter",
+  addKeyboardShortcuts() {
+    return {
+      Enter: () =>
+        this.editor.commands.command(({ state, chain }) => {
+          const { $from, empty } = state.selection;
+          const inEmptyParagraph =
+            empty && $from.parent.type.name === "paragraph" && $from.parent.content.size === 0;
+          if (!inEmptyParagraph) return false;
+
+          const nodeBeforeParagraph = $from.before() > 0 ? state.doc.resolve($from.before()).nodeBefore : null;
+          const previousWasSpacer = nodeBeforeParagraph?.type.name === "paragraph" && nodeBeforeParagraph.textContent === "​";
+          if (previousWasSpacer) return false;
+
+          return chain().insertContent("​").setHardBreak().setHardBreak().run();
+        }),
+    };
+  },
+});
 
 function ToolbarButton({
   onClick,
@@ -46,6 +70,7 @@ export default function RichTextEditor({
       StarterKit,
       Link.configure({ openOnClick: false, autolink: true }),
       Markdown.configure({ html: false }),
+      SpacerOnDoubleEnter,
     ],
     content: defaultValue ?? "",
     immediatelyRender: false,
